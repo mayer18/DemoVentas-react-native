@@ -1,7 +1,21 @@
 import React from 'react';
-import { Dimensions, StyleSheet, Text, View, ListItem, FlatList } from 'react-native';
+import { 
+  Dimensions, 
+  StyleSheet, 
+  Text, 
+  View, 
+  ListItem, 
+  FlatList, 
+  Animated
+} from 'react-native';
 import ListProducts from "./helpers/ListProducts";
 import SearchProducts from "./helpers/SearchProducts";
+import GetTotal from "./helpers/GetTotal";
+
+import {Provider} from 'react-redux'
+import {createStore} from 'redux'
+import Reducers from './reducers'
+
 
 const config = { urlApi: 'http://apibeta.vendty.com/api/v1/products' }
 const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImEyNjk0ODhmYTg1ZGE0YWRjMDdiNzI3NzZjNWFkYjgzMDJiOWRiNGUzZWUyYjU1MTdiMTQ0YjhlMjg3ODYyZTgwYjY3ZTE2NWNmMzM3ZGZlIn0.eyJhdWQiOiIxMSIsImp0aSI6ImEyNjk0ODhmYTg1ZGE0YWRjMDdiNzI3NzZjNWFkYjgzMDJiOWRiNGUzZWUyYjU1MTdiMTQ0YjhlMjg3ODYyZTgwYjY3ZTE2NWNmMzM3ZGZlIiwiaWF0IjoxNTUwMTg0NTYzLCJuYmYiOjE1NTAxODQ1NjMsImV4cCI6MTU4MTcyMDU2Mywic3ViIjoiMTEyOSIsInNjb3BlcyI6W119.dtGgO8EfYPezohfVLfBs34VU0QE92wt7X4PNNWTeXuD7rQWezsX_Lg7amU-3KBXpPSA9A5NtJvp4MLJUUJ6aD3zbzcg13qpvAg4erLMdW_wwHkqHqHuQvoBuFIAdGhNcoAY1-PSuLDaSK5ndTcq8BHYi7oJNn5kva8QDylVCppmWycGUmZvq7csWRzd3HhBsbPQmCsPKUqyfJbf2gqwVqwfA5DjdoSbnn-yg0Ra9mJqp1YImHpS-R0nr4rCfqL53QlC6My01wd-Iw85FUrmd_Kaw9TmaZsdJ4zImBZYzlVbdZZG5e04HY9vFf2A86S6SZUSnyiCEquhgBze_28-Jjcqk1HVMJy4BHxdloa9KBT5IHoAhFyiv1cKXuw7s8QsPFUuiIoc5__8zc8NGvGaKvVAKOK1JHPxNOPWduzyBVcbu3SbHFkAPgm_jskCoSKWhPZptDMF8sEvgXTv5mlSEC0tSGyFJpMrBnWz_y_YqN-hr280F7JrVLRrl3zLV5G5mldnP-SnO8KdK9htWnV41y3kElBNd3B7WzNK3naiPFjIoYF-XIbgOwABf6HDG3axDVn1KJ5UqAQnqI--tpeef_T6ot_ugn8AOe8vvHinDLo87BKyCSD2B3VVtkeF0-Ku9qBlkk8V9tba4O_hyjbti5-qaDB7bYe1xEen_5JVD608"
@@ -233,7 +247,7 @@ const dataList = [
 ]
 
 const width = Dimensions.get('window').width;
-const height = Dimensions.get('window').height;
+
 export default class App extends React.Component {
   constructor(props) {
     super(props);
@@ -244,8 +258,7 @@ export default class App extends React.Component {
     };
   }
 
-  componentDidMount() {
-    
+  componentDidMount() {    
     fetch(config.urlApi, {
       method: "GET",
       headers: {
@@ -263,12 +276,15 @@ export default class App extends React.Component {
 
       })
       .catch((error) => {
-        console.error(error);
+        //console.error(error);
       });
   }
 
   render() {
     return (
+      <Provider store={createStore(Reducers)}>
+    
+ 
 			<View style={{ flex: 1,  width, flexDirection: 'row'}}>
 				<View style={{ flex: 1,  width: width *.8}}>
 
@@ -277,36 +293,16 @@ export default class App extends React.Component {
         	
       	</View>
       	<View style={{width: width * .2}}>
-					<View style={styles.vertical}>
-						<View style={styles.total}>
-							<Text style={{ textAlign: 'center' }}>Subtotal</Text>
-							<Text style={{ textAlign: 'center' }}>$ 0.00</Text>
-						</View>
-						<View style={styles.total}>
-							<Text style={{ textAlign: 'center' }}>IVA</Text>
-							<Text style={{ textAlign: 'center' }}>$ 0.00</Text>
-						</View>
-						<View style={styles.total}>
-							<Text style={{ textAlign: 'center' }}>Total</Text>
-							<Text style={{ textAlign: 'center' }}>$ 400.00</Text>
-						</View>
-					</View>
+					<GetTotal />
       	</View>
       </View>
+      </Provider>
     );
   }
 }
 
 const styles = StyleSheet.create({
-	vertical: {
-		height,
-		justifyContent: 'flex-end'
-	},
-	total: {
-		justifyContent: 'space-between',
-		flexDirection: 'row',
-		marginBottom: 10
-	},
+	
 	container: {
 		flex: 1,
 		marginVertical: 20

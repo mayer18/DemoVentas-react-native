@@ -1,5 +1,17 @@
-import React, { Component } from 'react';
-import { ImageBackground, Image, StyleSheet, Text, View, FlatList, Dimensions, TouchableHighlight } from 'react-native';
+import React, { Component } from 'react'
+import { 
+  ImageBackground,
+  Image, 
+  StyleSheet, 
+  Text, 
+  View, 
+  FlatList, 
+  Dimensions, 
+  TouchableHighlight,
+  Animated
+} from 'react-native'
+import {connect} from 'react-redux'
+import * as actions from '../actions'
 
 const data = [
 ];
@@ -29,11 +41,15 @@ class ListProducts extends Component {
 	
 	componentDidMount() {
 		//console.log(this.state.data)
-		console.log('test')
 	}
 
 	proccessMoney(price) {
-		console.log(price)
+    console.log(price)
+    this.props.addProduct({
+      total: price,
+      subtotal: price -1,
+      iva: price - 2
+    })
 	}
 
   formatPrice(n) {
@@ -84,7 +100,11 @@ class ListProducts extends Component {
   }
 }
 
-export default ListProducts;
+const mapStateToProps = state => {
+  return {ventas: state.ventas}
+}
+
+export default connect(mapStateToProps, actions)(ListProducts);
 
 const styles = StyleSheet.create({
   
