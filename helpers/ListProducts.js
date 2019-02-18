@@ -23,18 +23,24 @@ class ListProducts extends Component {
     super(props);
     this.state = {
       data: this.props.data
-    };
+		};
+		this.proccessMoney = this.proccessMoney.bind(this);
 	}
 	
 	componentDidMount() {
-		console.log(this.state.data)
+		//console.log(this.state.data)
+		console.log('test')
+	}
+
+	proccessMoney(price) {
+		console.log(price)
 	}
 
   formatPrice(n) {
     const val = Math.round(Number(n) * 100) / 100;
     let parts = val.toString().split(".");
     const num = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".") + (parts[1] ? "," + parts[1] : "");
-    console.log(num)
+    //console.log(num)
     return num
   }
 
@@ -43,7 +49,7 @@ class ListProducts extends Component {
       return <View style={[styles.item, styles.itemInvisible]} />;
     }
     return (
-      <TouchableHighlight style={styles.item}>
+			<TouchableHighlight style={styles.item} onPress={() => this.proccessMoney(item.price)}>
         <View >
           <View style={{height: 200}}>
             <Image source={{ uri: item.url }} style={{
@@ -95,7 +101,7 @@ const styles = StyleSheet.create({
   itemText: {
     backgroundColor: '#bbb',
     color: '#32be32',
-    zIndex: 11,
+    
     textAlign: 'center',
     height: '15%',
     

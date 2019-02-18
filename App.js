@@ -233,12 +233,14 @@ const dataList = [
 ]
 
 const width = Dimensions.get('window').width;
+const height = Dimensions.get('window').height;
 export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       usbs: '',
-      response: dataList
+			response: dataList,
+			total: 0
     };
   }
 
@@ -275,7 +277,20 @@ export default class App extends React.Component {
         	
       	</View>
       	<View style={{width: width * .2}}>
-					<Text style={{ width: 50 }}>Hijo de puta</Text>
+					<View style={styles.vertical}>
+						<View style={styles.total}>
+							<Text style={{ textAlign: 'center' }}>Subtotal</Text>
+							<Text style={{ textAlign: 'center' }}>$ 0.00</Text>
+						</View>
+						<View style={styles.total}>
+							<Text style={{ textAlign: 'center' }}>IVA</Text>
+							<Text style={{ textAlign: 'center' }}>$ 0.00</Text>
+						</View>
+						<View style={styles.total}>
+							<Text style={{ textAlign: 'center' }}>Total</Text>
+							<Text style={{ textAlign: 'center' }}>$ 400.00</Text>
+						</View>
+					</View>
       	</View>
       </View>
     );
@@ -283,6 +298,15 @@ export default class App extends React.Component {
 }
 
 const styles = StyleSheet.create({
+	vertical: {
+		height,
+		justifyContent: 'flex-end'
+	},
+	total: {
+		justifyContent: 'space-between',
+		flexDirection: 'row',
+		marginBottom: 10
+	},
 	container: {
 		flex: 1,
 		marginVertical: 20
