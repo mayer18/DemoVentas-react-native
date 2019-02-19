@@ -13,9 +13,6 @@ import {
 import {connect} from 'react-redux'
 import * as actions from '../actions'
 
-const data = [
-];
-
 const formatData = (data, numColumns) => {
   const numberOfFullRows = Math.floor(data.length / numColumns);
 
@@ -28,28 +25,47 @@ const formatData = (data, numColumns) => {
   return data;
 };
 
+const config = { urlApi: 'http://apibeta.vendty.com/api/v1' }
+const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImEyNjk0ODhmYTg1ZGE0YWRjMDdiNzI3NzZjNWFkYjgzMDJiOWRiNGUzZWUyYjU1MTdiMTQ0YjhlMjg3ODYyZTgwYjY3ZTE2NWNmMzM3ZGZlIn0.eyJhdWQiOiIxMSIsImp0aSI6ImEyNjk0ODhmYTg1ZGE0YWRjMDdiNzI3NzZjNWFkYjgzMDJiOWRiNGUzZWUyYjU1MTdiMTQ0YjhlMjg3ODYyZTgwYjY3ZTE2NWNmMzM3ZGZlIiwiaWF0IjoxNTUwMTg0NTYzLCJuYmYiOjE1NTAxODQ1NjMsImV4cCI6MTU4MTcyMDU2Mywic3ViIjoiMTEyOSIsInNjb3BlcyI6W119.dtGgO8EfYPezohfVLfBs34VU0QE92wt7X4PNNWTeXuD7rQWezsX_Lg7amU-3KBXpPSA9A5NtJvp4MLJUUJ6aD3zbzcg13qpvAg4erLMdW_wwHkqHqHuQvoBuFIAdGhNcoAY1-PSuLDaSK5ndTcq8BHYi7oJNn5kva8QDylVCppmWycGUmZvq7csWRzd3HhBsbPQmCsPKUqyfJbf2gqwVqwfA5DjdoSbnn-yg0Ra9mJqp1YImHpS-R0nr4rCfqL53QlC6My01wd-Iw85FUrmd_Kaw9TmaZsdJ4zImBZYzlVbdZZG5e04HY9vFf2A86S6SZUSnyiCEquhgBze_28-Jjcqk1HVMJy4BHxdloa9KBT5IHoAhFyiv1cKXuw7s8QsPFUuiIoc5__8zc8NGvGaKvVAKOK1JHPxNOPWduzyBVcbu3SbHFkAPgm_jskCoSKWhPZptDMF8sEvgXTv5mlSEC0tSGyFJpMrBnWz_y_YqN-hr280F7JrVLRrl3zLV5G5mldnP-SnO8KdK9htWnV41y3kElBNd3B7WzNK3naiPFjIoYF-XIbgOwABf6HDG3axDVn1KJ5UqAQnqI--tpeef_T6ot_ugn8AOe8vvHinDLo87BKyCSD2B3VVtkeF0-Ku9qBlkk8V9tba4O_hyjbti5-qaDB7bYe1xEen_5JVD608"
+
 const numColumns = 3;
 class ListProducts extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      data: this.props.data
+      products: [],
+      categories: []
 		};
 		this.proccessMoney = this.proccessMoney.bind(this);
 	}
 	
 	componentDidMount() {
-		//console.log(this.state.data)
-	}
+    this.getProducts(18)
+  }
+  
+  getProducts(id) {
 
-	proccessMoney(price) {
-    console.log(price)
-    this.props.addProduct({
-      total: price,
-      subtotal: price -1,
-      iva: price - 2
+    fetch(`${config.urlApi}/products/category/${id}`, {
+      method: "GET",
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
     })
+      .then((response) => response.json())
+      .then((responseJson) => {
+        this.setState({
+          products: responseJson.data,
+        });
+      })
+      .catch((error) => {
+        console.error('error');
+        console.error(error);
+      });
+  }
+
+	proccessMoney(item) {
+    this.props.addProduct(item)
 	}
 
   formatPrice(n) {
@@ -65,21 +81,21 @@ class ListProducts extends Component {
       return <View style={[styles.item, styles.itemInvisible]} />;
     }
     return (
-			<TouchableHighlight style={styles.item} onPress={() => this.proccessMoney(item.price)}>
+			<TouchableHighlight style={styles.item} onPress={() => this.proccessMoney(item)}>
         <View >
           <View style={{height: 200}}>
-            <Image source={{ uri: item.url }} style={{
+            {
+            <Image source={{ uri: item.images[0] }} style={{
               width: '100%',
               height: '60%',
-              //position: 'absolute',
-              //resizeMode: 'contain',
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
               opacity: .5
             }}></Image>
-            <Text style={styles.itemText}>${this.formatPrice(item.price)}</Text>
+          }
+            <Text style={styles.itemText}>${this.formatPrice(parseFloat(item.price.total))}</Text>
             <Text style={styles.itemPrice}>{item.name}</Text>
           </View>
         </View>
@@ -90,7 +106,7 @@ class ListProducts extends Component {
   render() {
     return (
       <FlatList
-        data={formatData(this.state.data, numColumns)}
+        data={formatData(this.state.products, numColumns)}
         style={styles.container}
         renderItem={this.renderItem}
         numColumns={numColumns}
@@ -101,7 +117,7 @@ class ListProducts extends Component {
 }
 
 const mapStateToProps = state => {
-  return {ventas: state.ventas}
+  return {ventas: state.ventas, products: state.products}
 }
 
 export default connect(mapStateToProps, actions)(ListProducts);

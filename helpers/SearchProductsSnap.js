@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import Swiper from 'react-native-swiper';
 
-const { width } = Dimensions.get('window').width * .8;
+const { width } = Dimensions.get('window').width * .7;
 
 const styles = {
 	container: {

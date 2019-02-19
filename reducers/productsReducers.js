@@ -1,11 +1,9 @@
 export default (state = [], action) => {
   switch(action.type) {
-    case 'addProduct':
-      const newObject = action.payload
-      newObject.qty = 1;
+    case 'addProducts':
       const addProduct = [
         ...state,
-        newObject
+        action.payload
       ]
       return addProduct
     default:
