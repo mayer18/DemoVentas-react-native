@@ -54,9 +54,10 @@ class ListProducts extends Component {
     })
       .then((response) => response.json())
       .then((responseJson) => {
-        this.setState({
-          products: responseJson.data,
-        });
+        // this.setState({
+        //   products: responseJson.data,
+        // });
+        this.props.setProduct(responseJson.data)
       })
       .catch((error) => {
         console.error('error');
@@ -72,8 +73,7 @@ class ListProducts extends Component {
     const val = Math.round(Number(n) * 100) / 100;
     let parts = val.toString().split(".");
     const num = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".") + (parts[1] ? "," + parts[1] : "");
-    //console.log(num)
-    return num
+    return num;
   }
 
   renderItem = ({ item, index }) => {
@@ -83,7 +83,7 @@ class ListProducts extends Component {
     return (
 			<TouchableHighlight style={styles.item} onPress={() => this.proccessMoney(item)}>
         <View >
-          <View style={{height: 200}}>
+          <View style={{height: 100}}>
             {
             <Image source={{ uri: item.images[0] }} style={{
               width: '100%',
@@ -91,8 +91,7 @@ class ListProducts extends Component {
               top: 0,
               left: 0,
               right: 0,
-              bottom: 0,
-              opacity: .5
+              bottom: 0
             }}></Image>
           }
             <Text style={styles.itemText}>${this.formatPrice(parseFloat(item.price.total))}</Text>
@@ -106,7 +105,7 @@ class ListProducts extends Component {
   render() {
     return (
       <FlatList
-        data={formatData(this.state.products, numColumns)}
+        data={formatData(this.props.products, numColumns)}
         style={styles.container}
         renderItem={this.renderItem}
         numColumns={numColumns}
@@ -129,7 +128,7 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 10,
     borderRadius: 8,
-    height: Dimensions.get('window').width * .5 / numColumns,
+    height: Dimensions.get('window').width * .3 / numColumns,
   },
   itemInvisible: {
     backgroundColor: 'transparent',
@@ -139,12 +138,12 @@ const styles = StyleSheet.create({
     color: '#32be32',
     
     textAlign: 'center',
-    height: '15%',
+    height: '19%',
     
     //color: 'black'
   },
   itemPrice: {
-    height: '15%',
+    height: '19%',
     backgroundColor: '#ddd',
     textAlign: 'center',
     color: '#fff',

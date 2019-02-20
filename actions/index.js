@@ -4,3 +4,17 @@ export const addProduct = (product) => {
     payload: product
   }
 }
+
+export const deleteProduct = (product) => {
+  return {
+    type: 'deleteProduct',
+    payload: product
+  }
+}
+
+export const setProduct = (product) => {
+  return {
+    type: 'setProduct',
+    payload: product
+  }
+}

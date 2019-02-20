@@ -16,37 +16,85 @@ import {
 import {connect} from 'react-redux'
 import { Table, TableWrapper, Row, Rows, Col, Cell } from 'react-native-table-component'
 import * as actions from '../actions'
+import { Ionicons } from '@expo/vector-icons';
 
-const height = Dimensions.get('window').height;
+const config = { urlApi: 'http://apibeta.vendty.com/api/v1' }
+const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImEyNjk0ODhmYTg1ZGE0YWRjMDdiNzI3NzZjNWFkYjgzMDJiOWRiNGUzZWUyYjU1MTdiMTQ0YjhlMjg3ODYyZTgwYjY3ZTE2NWNmMzM3ZGZlIn0.eyJhdWQiOiIxMSIsImp0aSI6ImEyNjk0ODhmYTg1ZGE0YWRjMDdiNzI3NzZjNWFkYjgzMDJiOWRiNGUzZWUyYjU1MTdiMTQ0YjhlMjg3ODYyZTgwYjY3ZTE2NWNmMzM3ZGZlIiwiaWF0IjoxNTUwMTg0NTYzLCJuYmYiOjE1NTAxODQ1NjMsImV4cCI6MTU4MTcyMDU2Mywic3ViIjoiMTEyOSIsInNjb3BlcyI6W119.dtGgO8EfYPezohfVLfBs34VU0QE92wt7X4PNNWTeXuD7rQWezsX_Lg7amU-3KBXpPSA9A5NtJvp4MLJUUJ6aD3zbzcg13qpvAg4erLMdW_wwHkqHqHuQvoBuFIAdGhNcoAY1-PSuLDaSK5ndTcq8BHYi7oJNn5kva8QDylVCppmWycGUmZvq7csWRzd3HhBsbPQmCsPKUqyfJbf2gqwVqwfA5DjdoSbnn-yg0Ra9mJqp1YImHpS-R0nr4rCfqL53QlC6My01wd-Iw85FUrmd_Kaw9TmaZsdJ4zImBZYzlVbdZZG5e04HY9vFf2A86S6SZUSnyiCEquhgBze_28-Jjcqk1HVMJy4BHxdloa9KBT5IHoAhFyiv1cKXuw7s8QsPFUuiIoc5__8zc8NGvGaKvVAKOK1JHPxNOPWduzyBVcbu3SbHFkAPgm_jskCoSKWhPZptDMF8sEvgXTv5mlSEC0tSGyFJpMrBnWz_y_YqN-hr280F7JrVLRrl3zLV5G5mldnP-SnO8KdK9htWnV41y3kElBNd3B7WzNK3naiPFjIoYF-XIbgOwABf6HDG3axDVn1KJ5UqAQnqI--tpeef_T6ot_ugn8AOe8vvHinDLo87BKyCSD2B3VVtkeF0-Ku9qBlkk8V9tba4O_hyjbti5-qaDB7bYe1xEen_5JVD608"
+
+const height = Dimensions.get('window').height * .9;
 class GetTotal extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      tableData: [
-      ]
+      tableData: [],
+      currency: ''
     }
   }
 
   componentDidMount() {
-		//console.log(this.state.data)
+    //console.log(this.state.data)
+    this.getCurrency()
 	}
 
   getFormat(type) {// nombre del campo en el endpoint (total, subtotal o tax)
+    const currency = this.state.currency
     const totales = this.props.ventas.map((a) => a.price[type])
-    return totales.length > 0 ? totales.reduce((a, b) => parseFloat(a) + parseFloat(b)): '0.00'
+    return totales.length > 0 ? totales.reduce(
+      (a, b) => {
+        let fixA, fixB
+        if (type !== 'tax') {
+          if(currency === ',') {
+            fixA = typeof a === 'number' || !a ? a:a.replace(/,/, '')
+            fixB = typeof b === 'number' || !b ? b:b.replace(/,/, '')
+          } else {
+            fixA = typeof a === 'number' ? a:a.replace(/./, '')
+            fixB = typeof b === 'number' ? b:b.replace(/./, '')
+          }
+          fixA = fixA ? fixA: 0
+          fixB = fixB ? fixB: 0
+        } else {
+          console.log(a)
+          fixA = a
+          fixB = b
+        }
+        return parseFloat(fixA) + parseFloat(fixB)
+      }
+    ): '0.00'
+  }
+
+  getCurrency() {
+    fetch(`${config.urlApi}/data-currency`, {
+      method: "GET",
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    })
+      .then((response) => response.json())
+      .then((responseJson) => {
+        this.setState({
+          currency: responseJson.thousands_sep,
+        });
+      })
+      .catch((error) => {
+        console.error('error');
+        console.error(error);
+      });
   }
 
   getTotal() {
-    return this.getFormat('total')
+    const total = this.getFormat('total')
+    return total > 0 ? (total*100/100).toFixed(2):total
   }
 
   getSubTotal() {
-    return this.getFormat('subtotal')
+    const subtotal = this.getFormat('subtotal')
+    return subtotal > 0 ? (subtotal*100/100).toFixed(2):subtotal
   }
 
   getIva() {
-    return this.getFormat('tax')
+    const iva = this.getFormat('tax')
+    return iva > 0 ? (iva*100/100).toFixed(2):'0.00'
   }
 
   getTotalProducts() {
@@ -55,6 +103,10 @@ class GetTotal extends Component {
 
   Click() {
     console.log('click')
+  }
+
+  deleteItem(item) {
+    this.props.deleteProduct(item)
   }
 
   renderTable() {
@@ -76,9 +128,12 @@ class GetTotal extends Component {
               flexDirection: 'row',
             }}>
               <Text style={styles.nameProduct}>{item.name}</Text>
-              <Text style={styles.cellRow}>{1}</Text>
+              <Text style={styles.middle}>{1}</Text>
               <Text style={styles.cellRow}>{item.price.total}</Text>
               <Text style={styles.cellRow}>{item.price.subtotal}</Text>
+              <TouchableOpacity style={styles.middle} onPress={() => this.deleteItem(item)}>
+                <Ionicons name="md-trash" size={32} color="red" />
+              </TouchableOpacity>
             </View>
           ))
         }
@@ -137,6 +192,10 @@ const stylesTable = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
+  middle: {
+    flex: .5,
+
+  },
   nameProduct: {
     flex: 2,
     alignSelf: 'stretch'

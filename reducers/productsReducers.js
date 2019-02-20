@@ -1,11 +1,7 @@
 export default (state = [], action) => {
   switch(action.type) {
-    case 'addProducts':
-      const addProduct = [
-        ...state,
-        action.payload
-      ]
-      return addProduct
+    case 'setProduct':
+      return action.payload
     default:
       return state
   }

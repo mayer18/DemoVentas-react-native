@@ -11,6 +11,7 @@ import {
 import ListProducts from "./helpers/ListProducts";
 import SearchProducts from "./helpers/SearchProducts";
 import GetTotal from "./helpers/GetTotal";
+import Header from "./helpers/Header";
 
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
@@ -376,19 +377,18 @@ class App extends React.Component {
   render() {
     return (
       <Provider store={createStore(Reducers)}>
-    
- 
-			<View style={{ flex: 1,  width, flexDirection: 'row'}}>
-				<View style={{ flex: 1,  width: width *.7}}>
+        <Header/>
+        <View style={{ flex: 1,  width, flexDirection: 'row'}}>
+          <View style={{ flex: 1,  width: width *.7}}>
 
-					<SearchProducts />
-					<ListProducts />
-        	
-      	</View>
-      	<View style={{width: width * .3}}>
-					<GetTotal />
-      	</View>
-      </View>
+            <SearchProducts />
+            <ListProducts />
+            
+          </View>
+          <View style={{width: width * .3}}>
+            <GetTotal />
+          </View>
+        </View>
       </Provider>
     );
   }
