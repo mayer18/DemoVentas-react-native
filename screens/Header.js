@@ -21,7 +21,7 @@ const styles = {
 	}
 }
 
-class SearchProductsSnap extends Component {
+class Header extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -64,4 +64,4 @@ class SearchProductsSnap extends Component {
 	}
 }
 
-export default SearchProductsSnap;
+export default Header;

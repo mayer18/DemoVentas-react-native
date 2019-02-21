@@ -6,17 +6,19 @@ import {
   View, 
   ListItem, 
   FlatList, 
+  TouchableOpacity,
   Animated
 } from 'react-native';
-import ListProducts from "./helpers/ListProducts";
-import SearchProducts from "./helpers/SearchProducts";
-import GetTotal from "./helpers/GetTotal";
-import Header from "./helpers/Header";
+import ListProducts from "./screens/ListProducts";
+import SearchProducts from "./screens/SearchProducts";
+import GetTotal from "./screens/GetTotal";
+import Header from "./screens/Header";
 
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import Reducers from './reducers'
 import {connect} from 'react-redux'
+import { RNUSBPrinter } from 'react-native-usb-printer'
 
 const dataList = [
   {
@@ -364,14 +366,54 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      usbs: '',
-			response: [],
+      printerSelected: false,
+      devices: [],
+      response: [],
+      message: '',
 			total: 0
     };
   }
 
-  componentDidMount() {    
-    
+  componentDidMount = async () => {    
+    const devices = await RNUSBPrinter.getUSBDeviceList();
+
+    this.setState(Object.assign({}, this.state, {
+      devices: devices,
+      message: 'se ejecuto'
+    }))
+  }
+
+  checkDevices() {
+    return this.state.devices.length > 0
+  }
+
+  errorPrint() {
+    console.log('No printer Connected')
+    this.setState(Object.assign({}, this.state, {
+      message: 'No printer connected'
+    }))
+  }
+
+  printTest = async (printCut) => {//printCut is true or false 
+    if (this.checkDevices()) {
+      const vendorID = this.state.devices[0].vendor_id
+      const productID = this.state.devices[0].product_id
+      let printerSelected = await RNUSBPrinter.connectPrinter(vendorID, product_id)
+      if (printerSelected) {
+        console.log('try to print')
+        this.setState(Object.assign({}, this.state, {
+          message: 'try to print'
+        }))
+        if (printCut)
+          RNUSBPrinter.printText("<C>This is test print</C>\n")
+        else
+          RNUSBPrinter.printBillTextWithCut("<C>This is test print</C>\n")
+      } else {
+        this.errorPrint()
+      }
+    } else {
+      this.errorPrint()
+    }
   }
 
   render() {
