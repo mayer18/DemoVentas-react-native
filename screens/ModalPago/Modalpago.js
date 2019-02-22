@@ -8,9 +8,14 @@ import {
   TextInput,
   ScrollView,
   FlatList,
+  ToastAndroid,
   TouchableHighlight
 } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
+import Calculator from "./Calculator";
+
+import {connect} from 'react-redux'
+import * as actions from '../../actions'
 
 let { width, height } = Dimensions.get('window');
 const marginLateral = 20;
@@ -18,15 +23,9 @@ const marginLateral = 20;
 const BLUE = '#428AF8'
 const LIGTH_GRAY = '#D3D3D3'
 const GREEN = '#61ce70'
-const numColumns = 3;
 
 const styles = {
-  itemCircle: {
-    backgroundColor: '#61ce70',
-    borderRadius: 50,
-    width: '35%',
-    padding: 5
-  },
+  
   itemResumen: {
     //textAlign: 'right'
   },
@@ -78,59 +77,27 @@ const styles = {
     borderBottomWidth: .5,
     width: width * .3
   },
-  containerFlat: {
-    width: 100,
-    maxWidth: width * .3
-  },
-  item: {
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    margin: 4,
-    height: 100 / numColumns,
-  },
-  itemInvisible: {
-    backgroundColor: 'transparent',
-  },
-  itemText: {
-    color: '#fff',
-    textAlign: 'center'
-  },
 }
 
 class ModalPago extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
+      descuento: [],
       bills: ['1000.00','5000.00','10000.00','50000.00'],
-      total: '0.00',
       isFocused: false,
       methods: ['Efectivo','Tarjeta de crédito','Tarjeta debito'],
       active: false,
       indexItem: '-1',
       indexItemBill: '-1',
       bill: 0,
-      method: 0,
-      keys: [
-        { key: '1' },
-        { key: '2' },
-        { key: '3' },
-        { key: '4' },
-        { key: '5' },
-        { key: '6' },
-        { key: '7' },
-        { key: '8' },
-        { key: '9' },
-        { key: '0' },
-        { key: '00' }
-      ]
+      method: 0
 		};
   }
 
   componentDidMount() {
-    this.setState({total: this.props.total})
-    console.log(this.total)
+    this.props.setTotalPago(this.props.total)
+    console.log(this.props.pagos)
   }
 
   onFocus() {
@@ -144,10 +111,6 @@ class ModalPago extends Component {
     this.setState({
       backgroundColor: 'transparent'
     })
-  }
-
-  touchKey(key) {
-    console.log(key)
   }
 
   customStyle(i) {
@@ -181,28 +144,112 @@ class ModalPago extends Component {
     }
   }
 
+  getRestante() {
+    const total = parseFloat(this.props.total)
+    const x = this.state.descuento.length > 0 ? this.state.descuento.reduce((a, b) => parseFloat(a) + parseFloat(b)): '0.00'
+    const restante = parseFloat(x)
+    return (total - restante).toFixed(2)
+  }
+
+  getRecibido() {
+    return this.state.descuento.length > 0 ? this.state.descuento.reduce((a, b) => parseFloat(a.bill) + parseFloat(b.bill)): '0.00'
+  }
+
+  showToast(msg) {
+    ToastAndroid.show(msg, ToastAndroid.SHORT);
+  }
+
+  cleanTotal() {
+    this.setState({
+      bill: 0,
+      method: 0
+    })
+    this.props.setTotalPago('0.00')
+    this.customStyle(-1)
+    this.customStyleBills(-1)
+  }
+
+  getBalance(x) {
+    const total = parseFloat(this.props.total)
+    const restante = parseFloat(this.getRecibido())
+    const calc = total - x - restante
+    return calc > 0
+  }
+
+  addTotal(method) {
+    const bill = this.props.pagos.total
+    if (this.getBalance(parseFloat(bill))) {
+      const x = this.state.descuento.find(a => a.method === method)
+      
+      if (x) {
+        const filter = this.state.descuento.map((a) => {
+          if (a.method === method) {
+            a.bill = (parseFloat(a.bill) + parseFloat(bill)).toFixed(2)
+          }
+          return a;
+        })
+        this.setState({descuento: filter})
+      } else {
+        this.setState({
+          descuento: [
+            ...this.state.descuento,
+            {
+              bill,
+              method
+            }
+          ]
+        })
+      }
+    } else {
+      this.showToast('Por favor verifique el monto')
+    }
+  }
+
   onActiveItem(i, item) {
     this.setState({indexItem: i})
-    this.setState({method: item})
+    if (this.state.bill !== 0) {
+      this.addTotal(item)
+      this.cleanTotal()
+    } else {
+      //this.showToast('Por favor agrega selecciona metodo de pago')
+    }
   }
 
   onActiveItemBills(i, item) {
     this.setState({indexItemBill: i})
     this.setState({bill: item})
+    this.props.setTotalPago(item)
+    if(this.state.method === 0) {
+      this.showToast('Por favor agrega metodo de pago')
+    }
   }
 
-  renderItem = ({ item, index }) => {
-    if (item.empty === true) {
-      return <View style={[styles.item, styles.itemInvisible]} />;
+  numberWithCommas(x) {
+    const aux_str = typeof x === 'number' ? x.toString(): x
+    if( aux_str.indexOf(".") === -1)
+      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '0.00'
+    return x;
+  }
+
+  getRestante() {
+    const total = parseFloat(this.props.total)
+    let restante = this.getRecibido()
+    return (total - restante).toFixed(2)
+  }
+
+  getRecibido() {
+    let descuento = 0
+    if (this.state.descuento.length > 1) {
+      descuento = this.state.descuento.reduce((a, b) => {
+        let fixA = typeof a === 'number' ? a: a.bill
+        let fixB = typeof b === 'number' ? b: b.bill
+        return  parseFloat(fixA) + parseFloat(fixB);
+      })
+    } else if(this.state.descuento.length === 1) {
+      descuento = parseFloat(this.state.descuento[0].bill)
     }
-    return (
-			<TouchableOpacity style={styles.item} onPress={() => this.touchKey(item.key)}>
-        <View style={styles.itemCircle}>
-          <Text style={styles.itemText}>{item.key}</Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+    return descuento
+  }
 
 	render() {
 		return (
@@ -212,8 +259,8 @@ class ModalPago extends Component {
           <TextInput 
             style={styles.textInput}
             keyboardType='numeric'
-            onChangeText={(total) => this.setState({total})}
-            value={this.state.total}
+            onChangeText={(total) => this.props.setTotalPago(total)}
+            value={this.numberWithCommas(this.props.pagos.total)}
           />
           <Text>Descuento</Text>
         </View>
@@ -224,17 +271,9 @@ class ModalPago extends Component {
         </View>
         <ScrollView style={{height: height * .4}}>
           <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-            {renderResume(this.props.total)}
-            <FlatList
-              data={formatData(this.state.keys, numColumns)}
-              style={styles.containerFlat}
-              renderItem={this.renderItem}
-              numColumns={numColumns}
-              keyExtractor={(item, index) => index.toString()}
-            />
-            <View 
-            //style={{width: width * .3}}
-            >
+            {renderResume(this.props.total, this)}
+            <Calculator />
+            <View>
               {
                 this.state.bills.map((a, i) => renderLists(a, i, 'itemBills', '$', this))
               }
@@ -245,18 +284,6 @@ class ModalPago extends Component {
 		);
 	}
 }
-
-const formatData = (data, numColumns) => {
-  const numberOfFullRows = Math.floor(data.length / numColumns);
-
-  let numberOfElementsLastRow = data.length - (numberOfFullRows * numColumns);
-  while (numberOfElementsLastRow !== numColumns && numberOfElementsLastRow !== 0) {
-    data.push({ key: `blank-${numberOfElementsLastRow}`, empty: true });
-    numberOfElementsLastRow++;
-  }
-
-  return data;
-};
 
 const renderLists = (item, i, className, symbol, app) => (
   <TouchableOpacity 
@@ -274,7 +301,7 @@ const renderLists = (item, i, className, symbol, app) => (
   </TouchableOpacity>
 );
 
-const renderResume = (total) => (
+const renderResume = (total, app) => (
   <View style={{
     justifyContent: 'center',
     //width: width *.7,
@@ -285,14 +312,25 @@ const renderResume = (total) => (
       textAlign: 'center'
     }}>Resumen de pago</Text>
     <View>
+      {
+        app.state.descuento.map((item, i) => (
+          <View key={i}>  
+            <Text style={styles.itemResumen}>{item.method} ${item.bill} </Text>
+          </View>
+        ))
+      }
       <Text style={styles.itemResumen}>Total + Propina: ${total} </Text>
-      <Text style={styles.itemResumen}>Restante a pagar: ${total}</Text>
-      <Text style={styles.itemResumen}>Total Recibido: ${total}</Text>
-      <Text style={styles.itemResumen}>Descuento: ${total}</Text>
-      <Text style={styles.itemResumen}>Propina: ${total}</Text>
-      <Text style={styles.itemResumenCambio}>Cambio: ${total}</Text>
+      <Text style={styles.itemResumen}>Restante a pagar: ${app.getRestante()}</Text>
+      <Text style={styles.itemResumen}>Total Recibido: ${app.getRecibido()}</Text>
+      <Text style={styles.itemResumen}>Descuento: ${0.00}</Text>
+      <Text style={styles.itemResumen}>Propina: ${0.00}</Text>
+      <Text style={styles.itemResumenCambio}>Cambio: ${0.00}</Text>
     </View>
   </View>
 )
 
-export default ModalPago;
+const mapStateToProps = state => {
+  return {pagos: state.pagos}
+}
+
+export default connect(mapStateToProps, actions)(ModalPago);

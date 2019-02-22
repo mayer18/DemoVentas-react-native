@@ -18,7 +18,10 @@ import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import Reducers from './reducers'
 import {connect} from 'react-redux'
-import { RNUSBPrinter } from 'react-native-usb-printer'
+
+
+const config = { urlApi: 'http://apibeta.vendty.com/api/v1' }
+const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImEyNjk0ODhmYTg1ZGE0YWRjMDdiNzI3NzZjNWFkYjgzMDJiOWRiNGUzZWUyYjU1MTdiMTQ0YjhlMjg3ODYyZTgwYjY3ZTE2NWNmMzM3ZGZlIn0.eyJhdWQiOiIxMSIsImp0aSI6ImEyNjk0ODhmYTg1ZGE0YWRjMDdiNzI3NzZjNWFkYjgzMDJiOWRiNGUzZWUyYjU1MTdiMTQ0YjhlMjg3ODYyZTgwYjY3ZTE2NWNmMzM3ZGZlIiwiaWF0IjoxNTUwMTg0NTYzLCJuYmYiOjE1NTAxODQ1NjMsImV4cCI6MTU4MTcyMDU2Mywic3ViIjoiMTEyOSIsInNjb3BlcyI6W119.dtGgO8EfYPezohfVLfBs34VU0QE92wt7X4PNNWTeXuD7rQWezsX_Lg7amU-3KBXpPSA9A5NtJvp4MLJUUJ6aD3zbzcg13qpvAg4erLMdW_wwHkqHqHuQvoBuFIAdGhNcoAY1-PSuLDaSK5ndTcq8BHYi7oJNn5kva8QDylVCppmWycGUmZvq7csWRzd3HhBsbPQmCsPKUqyfJbf2gqwVqwfA5DjdoSbnn-yg0Ra9mJqp1YImHpS-R0nr4rCfqL53QlC6My01wd-Iw85FUrmd_Kaw9TmaZsdJ4zImBZYzlVbdZZG5e04HY9vFf2A86S6SZUSnyiCEquhgBze_28-Jjcqk1HVMJy4BHxdloa9KBT5IHoAhFyiv1cKXuw7s8QsPFUuiIoc5__8zc8NGvGaKvVAKOK1JHPxNOPWduzyBVcbu3SbHFkAPgm_jskCoSKWhPZptDMF8sEvgXTv5mlSEC0tSGyFJpMrBnWz_y_YqN-hr280F7JrVLRrl3zLV5G5mldnP-SnO8KdK9htWnV41y3kElBNd3B7WzNK3naiPFjIoYF-XIbgOwABf6HDG3axDVn1KJ5UqAQnqI--tpeef_T6ot_ugn8AOe8vvHinDLo87BKyCSD2B3VVtkeF0-Ku9qBlkk8V9tba4O_hyjbti5-qaDB7bYe1xEen_5JVD608"
 
 const dataList = [
   {
@@ -374,47 +377,34 @@ class App extends React.Component {
     };
   }
 
-  componentDidMount = async () => {    
-    const devices = await RNUSBPrinter.getUSBDeviceList();
-
-    this.setState(Object.assign({}, this.state, {
-      devices: devices,
-      message: 'se ejecuto'
-    }))
-  }
-
-  checkDevices() {
-    return this.state.devices.length > 0
-  }
-
-  errorPrint() {
-    console.log('No printer Connected')
-    this.setState(Object.assign({}, this.state, {
-      message: 'No printer connected'
-    }))
-  }
-
-  printTest = async (printCut) => {//printCut is true or false 
-    if (this.checkDevices()) {
-      const vendorID = this.state.devices[0].vendor_id
-      const productID = this.state.devices[0].product_id
-      let printerSelected = await RNUSBPrinter.connectPrinter(vendorID, product_id)
-      if (printerSelected) {
-        console.log('try to print')
-        this.setState(Object.assign({}, this.state, {
-          message: 'try to print'
-        }))
-        if (printCut)
-          RNUSBPrinter.printText("<C>This is test print</C>\n")
-        else
-          RNUSBPrinter.printBillTextWithCut("<C>This is test print</C>\n")
-      } else {
-        this.errorPrint()
+  componentDidMount = async () => { 
+    fetch(`${config.urlApi}/data-currency`, {
+      method: "GET",
+      headers: {
+        'Authorization': 'Bearer ' + token
       }
-    } else {
-      this.errorPrint()
-    }
+    })
+      .then((response) => response.json())
+      .then((responseJson) => {
+        // this.setState({
+        //   products: responseJson.data,
+        // });
+        console.log(responseJson.data)
+        //this._storeData()
+      })
+      .catch((error) => {
+        console.error('error');
+        console.error(error);
+      });
   }
+
+  _storeData = async (key) => {
+    try {
+      await AsyncStorage.setItem('currency', key);
+    } catch (error) {
+      console.log(error)
+    }
+  };
 
   render() {
     return (
@@ -422,10 +412,8 @@ class App extends React.Component {
         <Header/>
         <View style={{ flex: 1,  width, flexDirection: 'row'}}>
           <View style={{ flex: 1,  width: width *.7}}>
-
             <SearchProducts />
             <ListProducts />
-            
           </View>
           <View style={{width: width * .3}}>
             <GetTotal />
@@ -437,12 +425,6 @@ class App extends React.Component {
 }
 
 export default App;
-
-// const mapStateToProps = state => {
-//   return {products: state.products}
-// }
-
-// export default connect(mapStateToProps)(App);
 
 const styles = StyleSheet.create({
 	

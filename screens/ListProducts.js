@@ -94,7 +94,7 @@ class ListProducts extends Component {
               bottom: 0
             }}></Image>
           }
-            <Text style={styles.itemText}>${this.formatPrice(parseFloat(item.price.total))}</Text>
+            <Text style={styles.itemText}>${item.price.total}</Text>
             <Text style={styles.itemPrice}>{item.name}</Text>
           </View>
         </View>

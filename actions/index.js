@@ -18,3 +18,16 @@ export const setProduct = (product) => {
     payload: product
   }
 }
+
+export const setTotalPago = (total) => {
+  return {
+    type: 'setTotalPago',
+    payload: total
+  }
+}
+
+export const cleanTotalPago = () => {
+  return {
+    type: 'cleanTotalPago'
+  }
+}
