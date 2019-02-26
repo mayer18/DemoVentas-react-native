@@ -12,7 +12,6 @@ import { Ionicons } from '@expo/vector-icons';
 
 let { width, height } = Dimensions.get('window');
 height = height *.1
-console.log(height)
 
 const styles = {
 	container: {
@@ -30,7 +29,7 @@ class Header extends Component {
   }
   
   Refresh() {
-    console.log('click')
+    
   }
 
 	render() {

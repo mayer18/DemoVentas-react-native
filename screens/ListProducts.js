@@ -8,6 +8,7 @@ import {
   FlatList, 
   Dimensions, 
   TouchableHighlight,
+  AsyncStorage,
   Animated
 } from 'react-native'
 import {connect} from 'react-redux'
@@ -35,7 +36,13 @@ class ListProducts extends Component {
     super(props);
     this.state = {
       products: [],
-      categories: []
+      categories: [],
+      currency: {
+        decimals: '2',
+        decimals_sep: '.',
+        symbol: '$',
+        thousands_sep: ','
+      }
 		};
 		this.proccessMoney = this.proccessMoney.bind(this);
 	}
@@ -43,7 +50,35 @@ class ListProducts extends Component {
 	componentDidMount() {
     this.getProducts(18)
   }
+
+  numberWithCommas(x) {
+    const aux_str = typeof x === 'number' ? x.toString(): x
+    if( aux_str.indexOf(".") === -1){
+      const parts = x.toString().split(".");
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, this.props.currency.thousands_sep);
+      return parts.join(".");
+    }
+    return x;
+  }
   
+  getCurrency() {
+    fetch(`${config.urlApi}/data-currency`, {
+      method: "GET",
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    })
+      .then((response) => response.json())
+      .then((responseJson) => {
+        
+        this.setState({currency: responseJson})
+      })
+      .catch((error) => {
+        console.log('error Currency');
+        console.error(error);
+      });
+  }
+
   getProducts(id) {
 
     fetch(`${config.urlApi}/products/category/${id}`, {
@@ -54,13 +89,10 @@ class ListProducts extends Component {
     })
       .then((response) => response.json())
       .then((responseJson) => {
-        // this.setState({
-        //   products: responseJson.data,
-        // });
         this.props.setProduct(responseJson.data)
       })
       .catch((error) => {
-        console.error('error');
+        console.log('error Products');
         console.error(error);
       });
   }
@@ -94,7 +126,7 @@ class ListProducts extends Component {
               bottom: 0
             }}></Image>
           }
-            <Text style={styles.itemText}>${item.price.total}</Text>
+            <Text style={styles.itemText}>${this.numberWithCommas(item.price.total)}</Text>
             <Text style={styles.itemPrice}>{item.name}</Text>
           </View>
         </View>
@@ -116,7 +148,7 @@ class ListProducts extends Component {
 }
 
 const mapStateToProps = state => {
-  return {ventas: state.ventas, products: state.products}
+  return {ventas: state.ventas, products: state.products, currency: state.currency}
 }
 
 export default connect(mapStateToProps, actions)(ListProducts);

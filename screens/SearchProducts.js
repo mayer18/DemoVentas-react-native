@@ -30,6 +30,24 @@ class SearchProducts extends Component {
   }
   componentDidMount() {
     this.getCategories()
+    this.getCurrency()
+  }
+
+  getCurrency() {
+    fetch(`${config.urlApi}/data-currency`, {
+      method: "GET",
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    })
+      .then((response) => response.json())
+      .then((responseJson) => {
+        this.props.setCurrency(responseJson)
+      })
+      .catch((error) => {
+        console.log('error');
+        console.error(error);
+      });
   }
 
   getCategories() {

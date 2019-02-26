@@ -31,3 +31,10 @@ export const cleanTotalPago = () => {
     type: 'cleanTotalPago'
   }
 }
+
+export const setCurrency = (currency) => {
+  return {
+    type: 'setCurrency',
+    payload: currency
+  }
+}
